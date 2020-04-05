@@ -1,0 +1,4 @@
+[submodule "MakinWaves/app/src/main/assets"]
+	path = MakinWaves/app/src/main/assets
+	url = git@github.com:DouglasOrr/TinyApps.git
+	branch = makinwaves-assets

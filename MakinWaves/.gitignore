@@ -1,6 +1,12 @@
 *.iml
 
 build
+.cache
 .gradle
 .idea
+.ipynb_checkpoints
+.ipython
+.jupyter
+.local
+local
 local.properties
