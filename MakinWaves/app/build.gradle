@@ -22,6 +22,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ["${buildDir}/jniLibs"]
+        }
+    }
 }
 
 dependencies {
@@ -32,4 +38,44 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+task buildLibmw {
+    def libmw_dir = file("${projectDir}/../libmw").absoluteFile
+    def jniLibs_dir = file("${buildDir}/jniLibs")
+    def targets = [
+            'arm64-v8a': 'aarch64-linux-android',
+            'x86_64': 'x86_64-linux-android',
+    ]
+
+    inputs.dir(libmw_dir)
+    outputs.dir(jniLibs_dir)
+
+    doLast {
+        def uid = ["id", "-u"].execute().text.trim()
+        def gid = ["id", "-g"].execute().text.trim()
+        def build_cmd = ['docker', 'run', '--rm', '-i', '--user', "${uid}:${gid}",
+                         '-v', "${libmw_dir}:/work", '-w', '/work',
+                         '-e', 'CARGO_HOME=/work/.cargo_home',
+                         'libmw',
+                         'cargo', 'build', '--release']
+        targets.each { android_name, cargo_target ->
+            // Run Cargo to build the .so
+            exec {
+                commandLine build_cmd + ['--target', cargo_target]
+            }
+            // Copy to build dir
+            copy {
+                from "${libmw_dir}/target/${cargo_target}/release/libmw.so"
+                into "${jniLibs_dir}/${android_name}"
+            }
+        }
+    }
+}
+
+// This shouldn't be needed, as we've set the outputs of buildLibmw above
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('JniLibFolders')) {
+        task.dependsOn buildLibmw
+    }
 }
