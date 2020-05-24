@@ -81,12 +81,12 @@ class ClipsActivity : AppCompatActivity() {
         }
     }
 
-    object Differ : DiffUtil.ItemCallback<String>() {
+    object TrackDiffer : DiffUtil.ItemCallback<String>() {
         override fun areItemsTheSame(oldItem: String, newItem: String) = oldItem == newItem
         override fun areContentsTheSame(oldItem: String, newItem: String) = oldItem == newItem
     }
 
-    inner class DragCallback : ItemTouchHelper.SimpleCallback(
+    inner class TrackDragCallback : ItemTouchHelper.SimpleCallback(
         ItemTouchHelper.UP + ItemTouchHelper.DOWN, 0) {
         override fun onMove(
             recyclerView: RecyclerView,
@@ -103,14 +103,17 @@ class ClipsActivity : AppCompatActivity() {
         }
     }
 
-    inner class TrackAdapter : ListAdapter<String, TrackAdapter.ViewHolder>(Differ) {
+    inner class TrackAdapter : ListAdapter<String, TrackAdapter.ViewHolder>(TrackDiffer) {
         inner class ViewHolder(root: ViewGroup): RecyclerView.ViewHolder(root) {
             var name: String? = null
             val title: TextView = root.findViewById(R.id.track_title)
 
             init {
                 root.findViewById<Button>(R.id.track_play).setOnClickListener {
-                    name?.let { player.play(story!!.fileNamed(it)) }
+                    name?.let { play(it) }
+                }
+                root.findViewById<Button>(R.id.track_delete).setOnClickListener {
+                    name?.let { askUserToDelete(it) }
                 }
             }
 
@@ -130,42 +133,54 @@ class ClipsActivity : AppCompatActivity() {
         }
     }
 
+    private fun play(name: String) {
+        player.play(story!!.trackNamed(name))
+    }
+
+    private fun askUserToDelete(name: String) {
+        AlertDialog.Builder(this).apply {
+            setTitle(getString(R.string.delete_dialog_title, name))
+            setPositiveButton(R.string.label_yes) { _, _ ->
+                story!!.delete(name)
+            }
+            setNegativeButton(R.string.label_no) { _, _ -> }
+        }.create().show()
+    }
+
+    private fun askUserToSave() {
+        AlertDialog.Builder(this).apply {
+            setTitle(R.string.save_dialog_title)
+            val root = layoutInflater.inflate(R.layout.dialog_save, null)
+            setView(root)
+            setPositiveButton(R.string.label_save) { _, _ ->
+                val name = root.findViewById<EditText>(R.id.save_dialog_name).text.toString()
+                story!!.saveWipRecording(name)
+            }
+            setNegativeButton(R.string.label_discard) { _, _ ->
+                story!!.deleteWipRecording()
+            }
+        }.create().apply {
+            show()
+            getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+            findViewById<Button>(R.id.save_dialog_play_button)!!.setOnClickListener {
+                player.play(story!!.wipRecording())
+            }
+            findViewById<Button>(R.id.save_dialog_stop_button)!!.setOnClickListener {
+                player.stop()
+            }
+            findViewById<EditText>(R.id.save_dialog_name)!!.addTextChangedListener(afterTextChanged = {
+                getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
+            })
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")  // TODO
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_clips)
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_AUDIO_PERMISSION_REQUEST_CODE)
 
-        this.story = Story(File(getExternalFilesDir(null), "stories/example"))
-
-        fun askUserToSave() {
-            AlertDialog.Builder(this).apply {
-                setTitle(R.string.save_dialog_title)
-                val root = layoutInflater.inflate(R.layout.dialog_save, null)
-                setView(root)
-                setPositiveButton(R.string.save_dialog_save) { _, _ ->
-                    val name = root.findViewById<EditText>(R.id.save_dialog_name).text.toString()
-                    Log.d(TAG, "Saving new recording as $name")
-                    story!!.saveRecorded(name)
-                }
-                setNegativeButton(R.string.save_dialog_discard) { _, _ ->
-                    Log.d(TAG, "Discarding new recording")
-                    story!!.deleteRecorded()
-                }
-            }.create().apply {
-                show()
-                getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-                findViewById<Button>(R.id.save_dialog_play_button)!!.setOnClickListener {
-                    player.play(story!!.wipRecording())
-                }
-                findViewById<Button>(R.id.save_dialog_stop_button)!!.setOnClickListener {
-                    player.stop()
-                }
-                findViewById<EditText>(R.id.save_dialog_name)!!.addTextChangedListener(afterTextChanged = {
-                    getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
-                })
-            }
-        }
+        story = Story(File(getExternalFilesDir(null), "stories/example")) // TODO
 
         findViewById<Button>(R.id.record_button).setOnTouchListener { _, event ->
             when (event.action) {
@@ -177,16 +192,13 @@ class ClipsActivity : AppCompatActivity() {
             }
             false
         }
-
         val adapter = TrackAdapter()
-        val layoutManager = LinearLayoutManager(this)
-        findViewById<RecyclerView>(R.id.clip_list).apply {
-            this.adapter = adapter
-            this.layoutManager = layoutManager
-            ItemTouchHelper(DragCallback()).attachToRecyclerView(this)
+        findViewById<RecyclerView>(R.id.clip_list).let {
+            it.adapter = adapter
+            it.layoutManager = LinearLayoutManager(this)
+            ItemTouchHelper(TrackDragCallback()).attachToRecyclerView(it)
         }
         subscriptions.add(story!!.updates().subscribe {
-            Log.d(TAG, "New data: $it")
             adapter.submitList(it.tracks)
         })
     }
@@ -208,7 +220,7 @@ class ClipsActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == RECORD_AUDIO_PERMISSION_REQUEST_CODE) {
             if (!grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                Log.d(TAG, "Record Audio permission denied")
+                Log.w(TAG, "Warning: Record Audio permission denied")
                 finish()
             } else {
                 Log.d(TAG, "Record Audio permission granted")

@@ -1,16 +1,22 @@
 <resources>
     <string name="app_name">StoryTapStory</string>
+
+    <!-- FullscreenActivity -->
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
+    <!-- ClipsActivity -->
     <string name="title_activity_clips">Record clip</string>
     <string name="record_clip">Hold to record</string>
-
     <string name="save_dialog_title">Save recording?</string>
-    <string name="save_dialog_save">Save</string>
-    <string name="save_dialog_discard">Discard</string>
     <string name="save_dialog_name_hint">Name</string>
+    <string name="delete_dialog_title">Delete %s?</string>
 
+    <!-- Generic -->
+    <string name="label_yes">Yes</string>
+    <string name="label_no">No</string>
     <string name="label_play">Play</string>
     <string name="label_stop">Stop</string>
     <string name="label_delete">Delete</string>
+    <string name="label_save">Save</string>
+    <string name="label_discard">Discard</string>
 </resources>

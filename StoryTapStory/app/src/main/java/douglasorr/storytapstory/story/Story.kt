@@ -17,7 +17,9 @@ import java.io.IOException
 
 private const val TAG = "Story"
 private const val AUDIO_EXTENSION = "3gp"
-private const val NEW_RECORDING = "_new_recording"
+private const val WIP_NAME = "_new_recording"
+
+fun trackNamed(directory: File, name: String) = File(directory, "$name.$AUDIO_EXTENSION")
 
 
 class Playlist(val directory: File, private val observer: Observer<Data>) {
@@ -42,10 +44,18 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
         Helper.move(data, directory, name, position)?.let { update(it) }
     }
 
+    fun add(name: String, file: File) {
+        Helper.add(data, directory, name, file)?.let { update(it) }
+    }
+
+    fun delete(name: String) {
+        Helper.delete(data, directory, name)?.let { update(it) }
+    }
+
     data class Data(val created: String, val updated: String, val tracks: List<String>)
 
     private companion object Helper {
-        private fun fileName(directory: File) = File(directory, "story.json")
+        private fun playlistFile(directory: File) = File(directory, "story.json")
 
         private fun load(file: File) = file.bufferedReader().use {
             Gson().fromJson(it, Data::class.java)
@@ -58,12 +68,16 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
             return data
         }
 
+        private fun saveUpdated(data: Data, directory: File, tracks: List<String>): Data {
+            return save(Data(data.created, currentTimeISO(), tracks), playlistFile(directory))
+        }
+
         /**
          * Load an existing playlist from the given file, or create a new (empty) one.
          */
         fun loadOrCreate(directory: File): Data {
             assertNotOnMainThread("Playlist loadOrCreate")
-            val file = fileName(directory)
+            val file = playlistFile(directory)
             if (file.isFile) {
                 try {
                     return load(file)
@@ -78,10 +92,6 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
             return save(Data(now, now, listOf()), file)
         }
 
-        private fun saveUpdated(data: Data, directory: File, tracks: List<String>): Data {
-            return save(Data(data.created, currentTimeISO(), tracks), fileName(directory))
-        }
-
         /**
          * Scan the directory for tracks, adding them to the end of the list & saving it.
          */
@@ -92,7 +102,7 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
             val foundTracks = (directory.listFiles()
                 !!.sortedBy { it.lastModified() }
                 .mapNotNull { pattern.find(it.name)?.groupValues?.get(1) }
-                .filterNot { it == NEW_RECORDING })
+                .filterNot { it == WIP_NAME })
 
             // Compare against the old to see if we need to update (and preserve existing order)
             val existing = data.tracks.filter { foundTracks.contains(it) }
@@ -131,6 +141,41 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
             mutTracks.removeAt(originalPosition + (if (position < originalPosition) 1 else 0))
             return saveUpdated(data, directory, mutTracks.toList())
         }
+
+        /**
+         * Add a new track (existing file).
+         */
+        fun add(data: Data, directory: File, name: String, file: File): Data? {
+            if (!file.isFile) {
+                Log.w(TAG, "Warning: add() could not find file \"${file}\" in playlist $directory")
+                return null
+            }
+            val newFile = trackNamed(directory, name)
+            if (newFile.isFile || data.tracks.contains(name)) {
+                Log.w(TAG, "Warning: add() track called \"${name}\" already exists in playlist $directory")
+                return null
+            }
+            file.renameTo(newFile)
+            return saveUpdated(data, directory, data.tracks.plus(name))
+        }
+
+        /**
+         * Try to delete a track.
+         */
+        fun delete(data: Data, directory: File, name: String): Data? {
+            val newTracks = data.tracks.filterNot { it == name }
+            if (newTracks.size == data.tracks.size) {
+                Log.w(TAG, "Warning: delete() could not find track \"${name}\" in playlist $directory")
+                return null
+            }
+            val file = trackNamed(directory, name)
+            if (file.isFile) {
+                file.delete()
+            } else {
+                Log.w(TAG, "Warning: couldn't find track audio for \"${name}\" in playlist $directory")
+            }
+            return saveUpdated(data, directory, newTracks)
+        }
     }
 }
 
@@ -151,27 +196,35 @@ class Story(val directory: File) {
         }
     }
 
+    // Getters
+
     fun updates(): Observable<Playlist.Data> = subject.observeOn(AndroidSchedulers.mainThread())
 
+    fun trackNamed(name: String) = trackNamed(directory, name)
+
+    fun wipRecording() = trackNamed(WIP_NAME)
+
+    // Actions
+
     fun move(name: String, position: Int) {
-        scheduler.scheduleDirect { playlist!!.move(name, position) }
-    }
-
-    fun fileNamed(name: String) = File(directory, "$name.$AUDIO_EXTENSION")
-
-    fun wipRecording() = fileNamed(NEW_RECORDING)
-
-    fun saveRecorded(name: String) {
         scheduler.scheduleDirect {
-            val wip = wipRecording()
-            if (wip.isFile) {
-                wip.renameTo(fileNamed(name))
-                playlist?.refresh()
-            }
+            playlist!!.move(name, position)
         }
     }
 
-    fun deleteRecorded() {
+    fun delete(name: String) {
+        scheduler.scheduleDirect {
+            playlist!!.delete(name)
+        }
+    }
+
+    fun saveWipRecording(name: String) {
+        scheduler.scheduleDirect {
+            playlist!!.add(name, wipRecording())
+        }
+    }
+
+    fun deleteWipRecording() {
         scheduler.scheduleDirect {
             val wip = wipRecording()
             if (wip.isFile) {
