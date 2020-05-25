@@ -3,9 +3,7 @@ package douglasorr.storytapstory
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -42,15 +40,13 @@ class StoryListActivity : BaseActivity() {
                     Log.d(TAG, "Open $name - TODO")
                 }
                 onClick(R.id.story_edit) { name ->
-                    startActivity(Intent(this@StoryListActivity, ClipsActivity::class.java).apply {
-                        data = storyList!!.path(name).toUri()
-                    })
+                    startEditActivity(name)
                 }
                 onClick(R.id.story_rename) { name ->
                     askUserToRename(name)
                 }
                 onClick(R.id.story_delete) { name ->
-                    Log.d(TAG, "Delete $name - TODO")
+                    askUserToDelete(name)
                 }
             }
 
@@ -79,7 +75,29 @@ class StoryListActivity : BaseActivity() {
 
     //endregion
 
-    fun askUserToRename(oldName: String) {
+    //region Dialogs
+
+    private fun askUserToCreate() {
+        AlertDialog.Builder(this).apply {
+            setTitle(R.string.create_dialog_title)
+            val root = layoutInflater.inflate(R.layout.dialog_create, null)
+            setView(root)
+            setPositiveButton(R.string.label_create) { _, _ ->
+                val name = root.findViewById<EditText>(R.id.create_dialog_name).text.toString().trim()
+                storyList!!.create(name)
+                startEditActivity(name)
+            }
+            setNegativeButton(R.string.label_cancel) { _, _ -> }
+        }.create().apply {
+            show()
+            getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+            findViewById<EditText>(R.id.create_dialog_name)!!.addTextChangedListener(afterTextChanged = {
+                getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
+            })
+        }
+    }
+
+    private fun askUserToRename(oldName: String) {
         AlertDialog.Builder(this).apply {
             setTitle(resources.getString(R.string.rename_dialog_title, oldName))
             val root = layoutInflater.inflate(R.layout.dialog_rename, null)
@@ -88,7 +106,7 @@ class StoryListActivity : BaseActivity() {
                 val newName = root.findViewById<EditText>(R.id.rename_dialog_name).text.toString().trim()
                 storyList!!.rename(oldName, newName)
             }
-            setNegativeButton(R.string.label_cancel) { _, _ -> } // TODO - unnecessary?
+            setNegativeButton(R.string.label_cancel) { _, _ -> }
         }.create().apply {
             show()
             getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
@@ -96,6 +114,24 @@ class StoryListActivity : BaseActivity() {
                 getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
             })
         }
+    }
+
+    private fun askUserToDelete(name: String) {
+        AlertDialog.Builder(this).apply {
+            setTitle(resources.getString(R.string.delete_dialog_title, name))
+            setPositiveButton(R.string.label_delete) { _, _ ->
+                storyList!!.delete(name)
+            }
+            setNegativeButton(R.string.label_cancel) { _, _ -> }
+        }.create().show()
+    }
+
+    //endregion
+
+    private fun startEditActivity(name: String) {
+        startActivity(Intent(this@StoryListActivity, ClipsActivity::class.java).apply {
+            data = storyList!!.path(name).toUri()
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,7 +145,27 @@ class StoryListActivity : BaseActivity() {
             view.layoutManager = LinearLayoutManager(this)
         }
         addSubscription(storyList!!.updates().subscribe {
-            adapter.submitList(it.stories)
+            adapter.submitList(it.stories.sorted())
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // E.g. if ClipsActivity wins the "story create() race"
+        storyList!!.refresh()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.menu_story_list, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_new_story) {
+            askUserToCreate()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

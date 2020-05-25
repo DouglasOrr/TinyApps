@@ -64,7 +64,12 @@ class StoryList(val directory: File) {
             return@update Data(data.stories.filterNot { it == name })
         }
 
-        var data = doRefresh().apply { subject.onNext(this) }
+        fun refresh() = update { data ->
+            val newData = reload()
+            if (data == newData) null else newData
+        }
+
+        var data = reload().apply { subject.onNext(this) }
 
         private fun update(op: (Data) -> Data?) {
             assertNotOnMainThread("StoryList update")
@@ -74,7 +79,7 @@ class StoryList(val directory: File) {
             }
         }
 
-        private fun doRefresh(): Data {
+        private fun reload(): Data {
             assertNotOnMainThread("StoryList refresh")
             // Use null-asserting dereference as the directory definitely should exist by this point
             val stories = directory.listFiles()!!.filter { it.isDirectory }.map { it.name }
@@ -115,6 +120,12 @@ class StoryList(val directory: File) {
     fun delete(name: String) {
         scheduler.scheduleDirect {
             worker!!.delete(name)
+        }
+    }
+
+    fun refresh() {
+        scheduler.scheduleDirect {
+            worker!!.refresh()
         }
     }
 }

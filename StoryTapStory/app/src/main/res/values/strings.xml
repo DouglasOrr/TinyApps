@@ -6,14 +6,16 @@
 
     <!-- StoryListActivity -->
     <string name="rename_dialog_title">Rename \"%s\"?</string>
+    <string name="create_dialog_title">New Story</string>
 
     <!-- ClipsActivity -->
     <string name="title_activity_clips">Record clip</string>
     <string name="record_clip">Hold to record</string>
     <string name="save_dialog_title">Save recording?</string>
-    <string name="delete_dialog_title">Delete %s?</string>
+    <string name="delete_dialog_title">Delete \"%s\"?</string>
 
     <!-- Generic -->
+    <string name="hint_name">Name</string>
     <string name="label_yes">Yes</string>
     <string name="label_no">No</string>
     <string name="label_play">Play</string>
@@ -24,5 +26,6 @@
     <string name="label_edit">Edit</string>
     <string name="label_rename">Rename</string>
     <string name="label_cancel">Cancel</string>
-    <string name="hint_name">Name</string>
+    <string name="label_create">Create</string>
+    <string name="label_new_story">New Story</string>
 </resources>
