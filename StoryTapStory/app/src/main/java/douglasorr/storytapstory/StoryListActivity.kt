@@ -2,7 +2,6 @@ package douglasorr.storytapstory
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.TextView
@@ -36,18 +35,10 @@ class StoryListActivity : BaseActivity() {
             val title: TextView = root.findViewById(R.id.story_title)
 
             init {
-                onClick(R.id.story_item) { name ->
-                    Log.d(TAG, "Open $name - TODO")
-                }
-                onClick(R.id.story_edit) { name ->
-                    startEditActivity(name)
-                }
-                onClick(R.id.story_rename) { name ->
-                    askUserToRename(name)
-                }
-                onClick(R.id.story_delete) { name ->
-                    askUserToDelete(name)
-                }
+                onClick(R.id.story_item) { name -> startPlayerActivity(name) }
+                onClick(R.id.story_edit) { name -> startEditActivity(name) }
+                onClick(R.id.story_rename) { name -> askUserToRename(name) }
+                onClick(R.id.story_delete) { name -> askUserToDelete(name) }
             }
 
             fun onClick(id: Int, action: (String) -> Unit) {
@@ -75,7 +66,19 @@ class StoryListActivity : BaseActivity() {
 
     //endregion
 
-    //region Dialogs
+    //region Actions
+
+    private fun startPlayerActivity(name: String) {
+        startActivity(Intent(this, StoryPlayerActivity::class.java).apply {
+            data = storyList!!.path(name).toUri()
+        })
+    }
+
+    private fun startEditActivity(name: String) {
+        startActivity(Intent(this, StoryEditorActivity::class.java).apply {
+            data = storyList!!.path(name).toUri()
+        })
+    }
 
     private fun askUserToCreate() {
         AlertDialog.Builder(this).apply {
@@ -127,12 +130,6 @@ class StoryListActivity : BaseActivity() {
     }
 
     //endregion
-
-    private fun startEditActivity(name: String) {
-        startActivity(Intent(this@StoryListActivity, ClipsActivity::class.java).apply {
-            data = storyList!!.path(name).toUri()
-        })
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

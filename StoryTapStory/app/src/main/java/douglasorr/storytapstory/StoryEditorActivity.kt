@@ -3,7 +3,6 @@ package douglasorr.storytapstory
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.util.Log
@@ -24,7 +23,7 @@ import java.io.File
 private const val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 200
 private const val TAG = "ClipsActivity"
 
-class ClipsActivity : BaseActivity() {
+class StoryEditorActivity : BaseActivity() {
     private val recorder = Recorder()
     private val player = Player()
     private var story: Story? = null
@@ -52,30 +51,6 @@ class ClipsActivity : BaseActivity() {
 
         fun release() {
             recorder.release()
-        }
-    }
-
-    class Player {
-        private val player = MediaPlayer()
-
-        fun play(track: File) {
-            stop()
-            player.apply {
-                setDataSource(track.absolutePath)
-                prepare()
-                start()
-            }
-        }
-
-        fun stop() {
-            player.apply {
-                stop()
-                reset()
-            }
-        }
-
-        fun release() {
-            player.release()
         }
     }
 
@@ -180,10 +155,10 @@ class ClipsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_AUDIO_PERMISSION_REQUEST_CODE)
-        setContentView(R.layout.activity_clips)
+        setContentView(R.layout.activity_story_editor)
 
-//        story = Story(File(getExternalFilesDir(null), "stories/example")) // TODO
         story = Story(intent.data!!.toFile())
+        title = story!!.directory.name
 
         findViewById<Button>(R.id.record_button).setOnTouchListener { _, event ->
             when (event.action) {
@@ -197,7 +172,7 @@ class ClipsActivity : BaseActivity() {
         }
 
         val adapter = TrackAdapter()
-        findViewById<RecyclerView>(R.id.clip_list).let {
+        findViewById<RecyclerView>(R.id.track_list).let {
             it.adapter = adapter
             it.layoutManager = LinearLayoutManager(this)
             ItemTouchHelper(TrackDragCallback()).attachToRecyclerView(it)

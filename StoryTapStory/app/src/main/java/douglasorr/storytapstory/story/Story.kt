@@ -19,7 +19,7 @@ private const val TAG = "Story"
 private const val AUDIO_EXTENSION = "3gp"
 private const val WIP_NAME = "_new_recording"
 
-fun trackNamed(directory: File, name: String) = File(directory, "$name.$AUDIO_EXTENSION")
+private fun trackNamed(directory: File, name: String) = File(directory, "$name.$AUDIO_EXTENSION")
 
 class Playlist(val directory: File, private val observer: Observer<Data>) {
     private var data: Data = loadOrCreate(directory).apply {
@@ -53,7 +53,7 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
 
     data class Data(val created: String, val updated: String, val tracks: List<String>)
 
-    private companion object Helper {
+    companion object Helper {
         private fun playlistFile(directory: File) = File(directory, "story.json")
 
         private fun load(file: File) = file.bufferedReader().use {
