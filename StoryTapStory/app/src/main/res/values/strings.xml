@@ -4,11 +4,13 @@
     <!-- FullscreenActivity -->
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
+    <!-- StoryListActivity -->
+    <string name="rename_dialog_title">Rename \"%s\"?</string>
+
     <!-- ClipsActivity -->
     <string name="title_activity_clips">Record clip</string>
     <string name="record_clip">Hold to record</string>
     <string name="save_dialog_title">Save recording?</string>
-    <string name="save_dialog_name_hint">Name</string>
     <string name="delete_dialog_title">Delete %s?</string>
 
     <!-- Generic -->
@@ -19,4 +21,8 @@
     <string name="label_delete">Delete</string>
     <string name="label_save">Save</string>
     <string name="label_discard">Discard</string>
+    <string name="label_edit">Edit</string>
+    <string name="label_rename">Rename</string>
+    <string name="label_cancel">Cancel</string>
+    <string name="hint_name">Name</string>
 </resources>

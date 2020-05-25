@@ -9,7 +9,9 @@
         android:id="@+id/save_dialog_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/save_dialog_name_hint" />
+        android:hint="@string/hint_name"
+        android:importantForAutofill="no"
+        android:inputType="textCapSentences" />
 
     <LinearLayout
         android:layout_width="match_parent"

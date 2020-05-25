@@ -21,7 +21,6 @@ private const val WIP_NAME = "_new_recording"
 
 fun trackNamed(directory: File, name: String) = File(directory, "$name.$AUDIO_EXTENSION")
 
-
 class Playlist(val directory: File, private val observer: Observer<Data>) {
     private var data: Data = loadOrCreate(directory).apply {
         observer.onNext(this)
@@ -155,7 +154,9 @@ class Playlist(val directory: File, private val observer: Observer<Data>) {
                 Log.w(TAG, "Warning: add() track called \"${name}\" already exists in playlist $directory")
                 return null
             }
-            file.renameTo(newFile)
+            if (!file.renameTo(newFile)) {
+                Log.w(TAG, "Rename failed \"$file\" -> \"$newFile\" in playlist $directory")
+            }
             return saveUpdated(data, directory, data.tracks.plus(name))
         }
 

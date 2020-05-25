@@ -14,19 +14,17 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.net.toFile
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.*
 import douglasorr.storytapstory.story.Story
-import io.reactivex.rxjava3.disposables.Disposable
 import java.io.File
 
 private const val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 200
 private const val TAG = "ClipsActivity"
 
-class ClipsActivity : AppCompatActivity() {
-    private val subscriptions = mutableListOf<Disposable>()
+class ClipsActivity : BaseActivity() {
     private val recorder = Recorder()
     private val player = Player()
     private var story: Story? = null
@@ -81,6 +79,8 @@ class ClipsActivity : AppCompatActivity() {
         }
     }
 
+    //region ListAdapter
+
     object TrackDiffer : DiffUtil.ItemCallback<String>() {
         override fun areItemsTheSame(oldItem: String, newItem: String) = oldItem == newItem
         override fun areContentsTheSame(oldItem: String, newItem: String) = oldItem == newItem
@@ -133,6 +133,8 @@ class ClipsActivity : AppCompatActivity() {
         }
     }
 
+    //endregion
+
     private fun play(name: String) {
         player.play(story!!.trackNamed(name))
     }
@@ -177,10 +179,11 @@ class ClipsActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")  // TODO
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_clips)
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_AUDIO_PERMISSION_REQUEST_CODE)
+        setContentView(R.layout.activity_clips)
 
-        story = Story(File(getExternalFilesDir(null), "stories/example")) // TODO
+//        story = Story(File(getExternalFilesDir(null), "stories/example")) // TODO
+        story = Story(intent.data!!.toFile())
 
         findViewById<Button>(R.id.record_button).setOnTouchListener { _, event ->
             when (event.action) {
@@ -192,20 +195,19 @@ class ClipsActivity : AppCompatActivity() {
             }
             false
         }
+
         val adapter = TrackAdapter()
         findViewById<RecyclerView>(R.id.clip_list).let {
             it.adapter = adapter
             it.layoutManager = LinearLayoutManager(this)
             ItemTouchHelper(TrackDragCallback()).attachToRecyclerView(it)
         }
-        subscriptions.add(story!!.updates().subscribe {
+        addSubscription(story!!.updates().subscribe {
             adapter.submitList(it.tracks)
         })
     }
 
     override fun onDestroy() {
-        subscriptions.forEach { it.dispose() }
-        subscriptions.clear()
         // Can release() these as this Activity should never be reused after onDestroy()
         recorder.release()
         player.release()
