@@ -21,7 +21,7 @@ import douglasorr.storytapstory.story.Story
 import java.io.File
 
 private const val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 200
-private const val TAG = "ClipsActivity"
+private const val TAG = "StoryEditorActivity"
 
 class StoryEditorActivity : BaseActivity() {
     private val recorder = Recorder()

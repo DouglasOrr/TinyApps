@@ -148,7 +148,7 @@ class StoryListActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        // E.g. if ClipsActivity wins the "story create() race"
+        // E.g. if StoryEditorActivity wins the "story create() race"
         storyList!!.refresh()
     }
 
