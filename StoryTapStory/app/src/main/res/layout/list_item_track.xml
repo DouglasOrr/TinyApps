@@ -4,15 +4,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="@dimen/list_height"
+    style="@style/ListItem">
+
+    <ImageView
+        android:id="@+id/track_drag"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_drag_handle"
+        android:tint="@color/drag_handle_tint"
+        android:contentDescription="@string/label_drag_handle" />
 
     <TextView
         android:id="@+id/track_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/list_margin_start"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_toEndOf="@id/track_drag"
         android:textSize="@dimen/list_main_text_size"
         tools:text="Track Title" />
 
@@ -20,21 +31,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:orientation="horizontal"
-        style="?attr/buttonBarStyle">
+        android:layout_centerVertical="true"
+        android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:id="@+id/track_play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_play"
-            style="?attr/buttonBarButtonStyle"/>
+            android:contentDescription="@string/label_play"
+            android:src="@drawable/ic_play"
+            style="@style/ListIconButton"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/track_delete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_delete"
-            style="?attr/buttonBarButtonStyle"/>
+            android:contentDescription="@string/label_delete"
+            android:src="@drawable/ic_delete"
+            style="@style/ListIconButton"/>
     </LinearLayout>
 </RelativeLayout>

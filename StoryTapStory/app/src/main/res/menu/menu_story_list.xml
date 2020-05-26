@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/action_new_story"
-        android:icon="@android:drawable/ic_menu_add"
+        android:icon="@drawable/ic_add"
         android:title="@string/label_new_story"
         app:showAsAction="ifRoom" />
 

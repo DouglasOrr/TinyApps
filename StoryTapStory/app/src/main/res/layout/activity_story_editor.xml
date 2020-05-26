@@ -10,16 +10,16 @@
     <Button
         android:id="@+id/record_button"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_margin="3dp"
+        android:layout_height="160dp"
+        android:layout_margin="@dimen/margin_medium"
         android:text="@string/record_clip"
-        android:textColor="#ffffff" />
+        android:textColor="#ffffff"
+        android:background="@drawable/bg_record_button" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/track_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="4" />
+        android:layout_weight="1" />
 
 </LinearLayout>

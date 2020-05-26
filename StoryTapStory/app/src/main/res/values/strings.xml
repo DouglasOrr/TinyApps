@@ -24,5 +24,6 @@
     <string name="label_rename">Rename</string>
     <string name="label_cancel">Cancel</string>
     <string name="label_create">Create</string>
-    <string name="label_new_story">New Story</string>
+    <string name="label_new_story">New story</string>
+    <string name="label_drag_handle">Drag handle</string>
 </resources>

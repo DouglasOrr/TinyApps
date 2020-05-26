@@ -15,19 +15,20 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="?android:attr/buttonBarStyle">
-        <Button
+        android:layout_height="wrap_content">
+        <ImageButton
             android:id="@+id/save_dialog_play_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_play"
-            style="?android:attr/buttonBarButtonStyle" />
-        <Button
+            android:contentDescription="@string/label_play"
+            android:src="@drawable/ic_play"
+            style="@style/ListIconButton" />
+        <ImageButton
             android:id="@+id/save_dialog_stop_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_stop"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:contentDescription="@string/label_stop"
+            android:src="@drawable/ic_stop"
+            style="@style/ListIconButton" />
     </LinearLayout>
 </LinearLayout>

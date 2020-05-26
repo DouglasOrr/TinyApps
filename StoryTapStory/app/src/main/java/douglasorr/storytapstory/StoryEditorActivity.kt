@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
@@ -19,6 +20,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.*
 import douglasorr.storytapstory.story.Story
 import java.io.File
+import java.lang.RuntimeException
 
 private const val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 200
 private const val TAG = "StoryEditorActivity"
@@ -42,10 +44,15 @@ class StoryEditorActivity : BaseActivity() {
             }
         }
 
-        fun stop() {
-            recorder.apply {
-                stop()
-                reset()
+        fun stop(): Boolean {
+            return try {
+                recorder.stop()
+                true
+            } catch (e: RuntimeException) {
+                logNonFatal(TAG, "probably called stop() too soon", e)
+                false
+            } finally {
+                recorder.reset()
             }
         }
 
@@ -84,10 +91,10 @@ class StoryEditorActivity : BaseActivity() {
             val title: TextView = root.findViewById(R.id.track_title)
 
             init {
-                root.findViewById<Button>(R.id.track_play).setOnClickListener {
+                root.findViewById<View>(R.id.track_play).setOnClickListener {
                     name?.let { play(it) }
                 }
-                root.findViewById<Button>(R.id.track_delete).setOnClickListener {
+                root.findViewById<View>(R.id.track_delete).setOnClickListener {
                     name?.let { askUserToDelete(it) }
                 }
             }
@@ -139,10 +146,10 @@ class StoryEditorActivity : BaseActivity() {
         }.create().apply {
             show()
             getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-            findViewById<Button>(R.id.save_dialog_play_button)!!.setOnClickListener {
+            findViewById<View>(R.id.save_dialog_play_button)!!.setOnClickListener {
                 player.play(story!!.wipRecording())
             }
-            findViewById<Button>(R.id.save_dialog_stop_button)!!.setOnClickListener {
+            findViewById<View>(R.id.save_dialog_stop_button)!!.setOnClickListener {
                 player.stop()
             }
             findViewById<EditText>(R.id.save_dialog_name)!!.addTextChangedListener(afterTextChanged = {
@@ -164,8 +171,9 @@ class StoryEditorActivity : BaseActivity() {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> recorder.start(story!!.wipRecording())
                 MotionEvent.ACTION_UP -> {
-                    recorder.stop()
-                    askUserToSave()
+                    if (recorder.stop()) {
+                        askUserToSave()
+                    }
                 }
             }
             false

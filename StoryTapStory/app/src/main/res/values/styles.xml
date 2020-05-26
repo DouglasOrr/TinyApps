@@ -16,4 +16,16 @@
         <item name="android:background">@color/black_overlay</item>
     </style>
 
+    <style name="ListItem">
+        <item name="android:background">@color/list_item_background</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="ListIconButton">
+        <item name="android:padding">12dp</item>
+        <item name="android:background">@drawable/bg_icon_button</item>
+        <item name="tint">@color/icon_on_white_tint</item>
+    </style>
+
 </resources>

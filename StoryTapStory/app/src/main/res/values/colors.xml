@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#0039e6</color>
-    <color name="primary_dark">#001a66</color>
-    <color name="accent">#03DAC5</color>
+    <!-- General -->
+    <color name="primary">#0099cc</color>
+    <color name="primary_dark">#004D67</color>
+    <color name="accent">#cc4400</color>
     <color name="black_overlay">#66000000</color>
+    <color name="transparent">#00ffffff</color>
+
+    <!-- Lists -->
+    <color name="list_item_background">#f8f8f8</color>
+    <color name="list_item_background_pressed">#c0c0c0</color>
+    <color name="icon_on_white_tint">#a0a0a0</color>
 
     <!-- StoryPlayerActivity -->
-    <color name="player_ready">#0099cc</color>
-    <color name="player_playing">#cc4400</color>
+    <color name="player_ready">@color/primary</color>
+    <color name="player_playing">@color/accent</color>
     <color name="player_done">#006644</color>
+
+    <!-- StoryEditorActivity -->
+    <color name="drag_handle_tint">#C0C0C0</color>
 </resources>
