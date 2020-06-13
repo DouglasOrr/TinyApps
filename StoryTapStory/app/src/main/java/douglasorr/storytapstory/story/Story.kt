@@ -207,13 +207,13 @@ class Story(val directory: File) {
 
     // Actions
 
-    fun move(name: String, position: Int) {
+    fun moveTrack(name: String, position: Int) {
         scheduler.scheduleDirect {
             playlist!!.move(name, position)
         }
     }
 
-    fun delete(name: String) {
+    fun deleteTrack(name: String) {
         scheduler.scheduleDirect {
             playlist!!.delete(name)
         }
@@ -230,6 +230,32 @@ class Story(val directory: File) {
             val wip = wipRecording()
             if (wip.isFile) {
                 wip.delete()
+            }
+        }
+    }
+
+    /**
+     * Note that this should be the last method called on this Story
+     */
+    fun deleteStory() {
+        scheduler.scheduleDirect {
+            if (!directory.isDirectory) {
+                Log.w(TAG, "Warning: deleteStory() cannot find \"$directory\"")
+            } else if (!directory.deleteRecursively()) {
+                Log.w(TAG, "Warning: deleteStory() failed for \"$directory\"")
+            }
+        }
+    }
+
+    /**
+     * Note that this should be the last method called on this Story
+     */
+    fun renameStory(newDirectory: File) {
+        scheduler.scheduleDirect {
+            if (!directory.isDirectory) {
+                Log.w(TAG, "Warning: renameStory() cannot find \"$directory\"")
+            } else if (!directory.renameTo(newDirectory)) {
+                Log.w(TAG, "Warning: renameStory() failed \"$directory\" -> \"$newDirectory\"")
             }
         }
     }

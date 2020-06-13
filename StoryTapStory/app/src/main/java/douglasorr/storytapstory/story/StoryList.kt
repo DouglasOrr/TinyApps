@@ -31,39 +31,6 @@ class StoryList(val directory: File) {
             return@update Data(data.stories.plus(name))
         }
 
-        fun rename(oldName: String, newName: String) = update { data ->
-            val oldFile = path(oldName)
-            val newFile = path(newName)
-            Log.d(TAG, "rename() ${newFile.exists()} ${newFile.isDirectory} ${data.stories.contains(newName)}")
-            if (!oldFile.isDirectory || !data.stories.contains(oldName)) {
-                Log.w(TAG, "Warning: rename() cannot find \"$oldName\" in $directory")
-                return@update null
-            }
-            // Would like to check newFile.exists() here, but it is case-insensitive, which is annoying
-            if (data.stories.contains(newName)) {
-                Log.w(TAG, "Warning: rename() target \"$newName\" already exists in $directory")
-                return@update null
-            }
-            if (!oldFile.renameTo(newFile)) {
-                Log.w(TAG, "Warning: rename() failed \"$oldName\" -> \"$newName\" in $directory")
-                return@update null
-            }
-            return@update Data(data.stories.filterNot { it == oldName }.plus(newName))
-        }
-
-        fun delete(name: String) = update { data ->
-            val file = path(name)
-            if (!file.isDirectory || !data.stories.contains(name)) {
-                Log.w(TAG, "Warning: delete() cannot find \"$name\" in $directory")
-                return@update null
-            }
-            if (!file.deleteRecursively()) {
-                Log.w(TAG, "Warning: delete() failed for \"$name\" in $directory")
-                return@update null
-            }
-            return@update Data(data.stories.filterNot { it == name })
-        }
-
         fun refresh() = update { data ->
             val newData = reload()
             if (data == newData) null else newData
@@ -108,18 +75,6 @@ class StoryList(val directory: File) {
     fun create(name: String) {
         scheduler.scheduleDirect {
             worker!!.create(name)
-        }
-    }
-
-    fun rename(oldName: String, newName: String) {
-        scheduler.scheduleDirect {
-            worker!!.rename(oldName, newName)
-        }
-    }
-
-    fun delete(name: String) {
-        scheduler.scheduleDirect {
-            worker!!.delete(name)
         }
     }
 

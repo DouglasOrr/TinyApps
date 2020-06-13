@@ -2,20 +2,19 @@ package douglasorr.storytapstory
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.*
 import douglasorr.storytapstory.story.Story
@@ -75,7 +74,7 @@ class StoryEditorActivity : BaseActivity() {
             target: RecyclerView.ViewHolder
         ): Boolean {
             val src = viewHolder as TrackAdapter.ViewHolder
-            src.name?.let { story!!.move(it, target.adapterPosition) }
+            src.name?.let { story!!.moveTrack(it, target.adapterPosition) }
             return true  // assume it will happen, asynchronously
         }
 
@@ -94,7 +93,7 @@ class StoryEditorActivity : BaseActivity() {
                     name?.let { play(it) }
                 }
                 root.findViewById<View>(R.id.track_delete).setOnClickListener {
-                    name?.let { askUserToDelete(it) }
+                    name?.let { askUserToDeleteTrack(it) }
                 }
             }
 
@@ -116,15 +115,17 @@ class StoryEditorActivity : BaseActivity() {
 
     //endregion
 
+    //region Actions
+
     private fun play(name: String) {
         player.play(story!!.trackNamed(name))
     }
 
-    private fun askUserToDelete(name: String) {
+    private fun askUserToDeleteTrack(name: String) {
         AlertDialog.Builder(this).apply {
             setTitle(getString(R.string.delete_dialog_title, name))
             setPositiveButton(R.string.label_yes) { _, _ ->
-                story!!.delete(name)
+                story!!.deleteTrack(name)
             }
             setNegativeButton(R.string.label_no) { _, _ -> }
         }.create().show()
@@ -156,6 +157,43 @@ class StoryEditorActivity : BaseActivity() {
             })
         }
     }
+
+    private fun askUserToDeleteStory() {
+        AlertDialog.Builder(this).apply {
+            setTitle(resources.getString(R.string.delete_dialog_title, title))
+            setPositiveButton(R.string.label_delete) { _, _ ->
+                story!!.deleteStory()
+                finish()
+            }
+            setNegativeButton(R.string.label_cancel) { _, _ -> }
+        }.create().show()
+    }
+
+    private fun askUserToRenameStory() {
+        AlertDialog.Builder(this).apply {
+            setTitle(resources.getString(R.string.rename_dialog_title, title))
+            val root = layoutInflater.inflate(R.layout.dialog_rename, null)
+            setView(root)
+            setPositiveButton(R.string.label_rename) { _, _ ->
+                val newName = root.findViewById<EditText>(R.id.rename_dialog_name).text.toString().trim()
+                val newDirectory = File(story!!.directory.parentFile, newName)
+                story!!.renameStory(newDirectory)
+                finish()
+                startActivity(Intent(this@StoryEditorActivity, StoryEditorActivity::class.java).apply {
+                    data = newDirectory.toUri()
+                })
+            }
+            setNegativeButton(R.string.label_cancel) { _, _ -> }
+        }.create().apply {
+            show()
+            getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+            findViewById<EditText>(R.id.rename_dialog_name)!!.addTextChangedListener(afterTextChanged = {
+                getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
+            })
+        }
+    }
+
+    //endregion
 
     @SuppressLint("ClickableViewAccessibility")  // TODO
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -210,5 +248,23 @@ class StoryEditorActivity : BaseActivity() {
                 Log.d(TAG, "Record Audio permission granted")
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.menu_story_editor, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_rename) {
+            askUserToRenameStory()
+            return true
+        }
+        if (item.itemId == R.id.action_delete) {
+            askUserToDeleteStory()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

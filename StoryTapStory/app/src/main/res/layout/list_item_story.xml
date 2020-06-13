@@ -4,8 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/story_item"
     android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/list_height"
     android:background="@drawable/bg_icon_button"
     style="@style/ListItem">
 
@@ -15,38 +13,18 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:textSize="@dimen/list_main_text_size"
+        style="@style/ListItemTitle"
         tools:text="Story Title" />
 
-    <LinearLayout
+    <ImageButton
+        android:id="@+id/story_edit"
+        android:layout_toEndOf="@id/story_title"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="14dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:orientation="horizontal">
+        android:contentDescription="@string/label_edit"
+        android:src="@drawable/ic_edit"
+        style="@style/ListIconButton"/>
 
-        <ImageButton
-            android:id="@+id/story_edit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/label_edit"
-            android:src="@drawable/ic_edit"
-            style="@style/ListIconButton"/>
-
-        <ImageButton
-            android:id="@+id/story_rename"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/label_rename"
-            android:src="@drawable/ic_rename"
-            style="@style/ListIconButton"/>
-
-        <ImageButton
-            android:id="@+id/story_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/label_delete"
-            android:src="@drawable/ic_delete"
-            style="@style/ListIconButton"/>
-    </LinearLayout>
 </RelativeLayout>

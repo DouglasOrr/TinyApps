@@ -2,9 +2,6 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/list_height"
     style="@style/ListItem">
 
     <ImageView
@@ -22,9 +19,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_marginStart="8dp"
         android:layout_toEndOf="@id/track_drag"
-        android:textSize="@dimen/list_main_text_size"
+        style="@style/ListItemTitle"
         tools:text="Track Title" />
 
     <LinearLayout

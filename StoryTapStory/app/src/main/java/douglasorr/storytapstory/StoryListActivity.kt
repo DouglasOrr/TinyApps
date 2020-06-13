@@ -37,8 +37,6 @@ class StoryListActivity : BaseActivity() {
             init {
                 onClick(R.id.story_item) { name -> startPlayerActivity(name) }
                 onClick(R.id.story_edit) { name -> startEditActivity(name) }
-                onClick(R.id.story_rename) { name -> askUserToRename(name) }
-                onClick(R.id.story_delete) { name -> askUserToDelete(name) }
             }
 
             fun onClick(id: Int, action: (String) -> Unit) {
@@ -98,35 +96,6 @@ class StoryListActivity : BaseActivity() {
                 getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
             })
         }
-    }
-
-    private fun askUserToRename(oldName: String) {
-        AlertDialog.Builder(this).apply {
-            setTitle(resources.getString(R.string.rename_dialog_title, oldName))
-            val root = layoutInflater.inflate(R.layout.dialog_rename, null)
-            setView(root)
-            setPositiveButton(R.string.label_rename) { _, _ ->
-                val newName = root.findViewById<EditText>(R.id.rename_dialog_name).text.toString().trim()
-                storyList!!.rename(oldName, newName)
-            }
-            setNegativeButton(R.string.label_cancel) { _, _ -> }
-        }.create().apply {
-            show()
-            getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-            findViewById<EditText>(R.id.rename_dialog_name)!!.addTextChangedListener(afterTextChanged = {
-                getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !it.isNullOrBlank()
-            })
-        }
-    }
-
-    private fun askUserToDelete(name: String) {
-        AlertDialog.Builder(this).apply {
-            setTitle(resources.getString(R.string.delete_dialog_title, name))
-            setPositiveButton(R.string.label_delete) { _, _ ->
-                storyList!!.delete(name)
-            }
-            setNegativeButton(R.string.label_cancel) { _, _ -> }
-        }.create().show()
     }
 
     //endregion

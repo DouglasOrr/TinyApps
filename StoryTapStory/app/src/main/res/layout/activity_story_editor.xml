@@ -11,7 +11,7 @@
         android:id="@+id/record_button"
         android:layout_width="match_parent"
         android:layout_height="160dp"
-        android:layout_margin="@dimen/margin_medium"
+        android:layout_margin="8dp"
         android:text="@string/record_clip"
         android:textColor="#ffffff"
         android:background="@drawable/bg_record_button" />
