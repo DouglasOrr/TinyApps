@@ -20,7 +20,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.*
 import douglasorr.storytapstory.story.Story
 import java.io.File
-import java.lang.RuntimeException
 
 private const val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 200
 private const val TAG = "StoryEditorActivity"

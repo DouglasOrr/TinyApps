@@ -13,10 +13,12 @@
     <color name="icon_on_white_tint">#a0a0a0</color>
 
     <!-- StoryPlayerActivity -->
-    <color name="player_ready">@color/primary</color>
-    <color name="player_playing">@color/accent</color>
-    <color name="player_done">#006644</color>
+    <color name="player_background">#060645</color>
+    <color name="star_tint">#ffff00</color>
+    <color name="star_tint_playing">#00DF98</color>
 
     <!-- StoryEditorActivity -->
+    <color name="record_ready">@color/primary</color>
+    <color name="record_recording">@color/accent</color>
     <color name="drag_handle_tint">#C0C0C0</color>
 </resources>

@@ -1,5 +1,7 @@
 package douglasorr.storytapstory
 
+import android.annotation.SuppressLint
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -12,9 +14,12 @@ private const val TAG = "StoryPlayerActivity"
 class StoryPlayerActivity : BaseActivity() {
     private val player = Player()
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_story_player)
+
+        (spinning_star.drawable as AnimatedVectorDrawable).start()
 
         // Go fullscreen
         supportActionBar?.hide()
@@ -34,14 +39,13 @@ class StoryPlayerActivity : BaseActivity() {
             // Responsive background
             addSubscription(player.updates().subscribe {
                 if (it is Player.Event.Start) {
-                    frame_player.background = getDrawable(R.drawable.player_playing)
+                    spinning_star.setColorFilter(getColor(R.color.star_tint_playing))
                 }
                 if (it is Player.Event.End) {
-                    if (trackIterator.hasNext()) {
-                        frame_player.background = getDrawable(R.drawable.player_ready)
-                    } else {
+                    spinning_star.setColorFilter(getColor(R.color.star_tint))
+                    if (!trackIterator.hasNext()) {
                         // Reset to start
-                        frame_player.background = getDrawable(R.drawable.player_done)
+                        // TODO: set a differnet visual
                         trackIterator = data.tracks.iterator()
                     }
                 }

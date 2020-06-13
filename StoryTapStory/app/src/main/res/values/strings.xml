@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">StoryTapStory</string>
 
+    <!-- StoryPlayerActivity -->
+    <string name="content_star">Rotating yellow star</string>
+
     <!-- StoryListActivity -->
     <string name="rename_dialog_title">Rename \"%s\"?</string>
     <string name="create_dialog_title">New Story</string>
