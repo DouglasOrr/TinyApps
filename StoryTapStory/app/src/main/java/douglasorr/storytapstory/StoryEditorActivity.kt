@@ -84,16 +84,19 @@ class StoryEditorActivity : BaseActivity() {
     }
 
     inner class TrackAdapter : ListAdapter<String, TrackAdapter.ViewHolder>(TrackDiffer) {
-        inner class ViewHolder(root: ViewGroup): RecyclerView.ViewHolder(root) {
+        inner class ViewHolder(val root: ViewGroup): RecyclerView.ViewHolder(root) {
             var name: String? = null
             val title: TextView = root.findViewById(R.id.track_title)
 
             init {
-                root.findViewById<View>(R.id.track_play).setOnClickListener {
-                    name?.let { play(it) }
-                }
-                root.findViewById<View>(R.id.track_delete).setOnClickListener {
-                    name?.let { askUserToDeleteTrack(it) }
+                onClick(R.id.track) { name -> play(name) }
+                onClick(R.id.track_delete) { name -> askUserToDeleteTrack(name) }
+            }
+
+            fun onClick(id: Int, action: (String) -> Unit) {
+                root.findViewById<View>(id).setOnClickListener {
+                    // Don't do anything if name is null
+                    name?.let { action(it) }
                 }
             }
 
