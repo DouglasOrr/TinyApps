@@ -16,4 +16,11 @@
         android:contentDescription="@string/content_star"
         android:tint="@color/star_tint"/>
 
+    <ImageView
+        android:id="@+id/star_field"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:contentDescription="@string/content_starry_sky"/>
+
 </FrameLayout>

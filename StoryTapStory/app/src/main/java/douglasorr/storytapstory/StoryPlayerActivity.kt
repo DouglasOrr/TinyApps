@@ -19,6 +19,9 @@ class StoryPlayerActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_story_player)
 
+        // Set up animations
+        star_field.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        star_field.setImageDrawable(StarrySkyDrawable(getColor(R.color.player_background)))
         (spinning_star.drawable as AnimatedVectorDrawable).start()
 
         // Go fullscreen
@@ -40,12 +43,14 @@ class StoryPlayerActivity : BaseActivity() {
             addSubscription(player.updates().subscribe {
                 if (it is Player.Event.Start) {
                     spinning_star.setColorFilter(getColor(R.color.star_tint_playing))
+                    star_field.visibility = View.GONE
+                    (star_field.drawable as StarrySkyDrawable).refresh()
                 }
                 if (it is Player.Event.End) {
                     spinning_star.setColorFilter(getColor(R.color.star_tint))
                     if (!trackIterator.hasNext()) {
                         // Reset to start
-                        // TODO: set a differnet visual
+                        star_field.visibility = View.VISIBLE
                         trackIterator = data.tracks.iterator()
                     }
                 }
@@ -63,6 +68,19 @@ class StoryPlayerActivity : BaseActivity() {
                 }
             }
         })
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        val starrySky = star_field.drawable as StarrySkyDrawable
+        val spinningStar = spinning_star.drawable as AnimatedVectorDrawable
+        if (hasFocus) {
+            starrySky.start()
+            spinningStar.start()
+        } else {
+            starrySky.stop()
+            spinningStar.stop()
+        }
     }
 
     override fun onDestroy() {

@@ -3,6 +3,7 @@
 
     <!-- StoryPlayerActivity -->
     <string name="content_star">Rotating yellow star</string>
+    <string name="content_starry_sky">Starry sky</string>
 
     <!-- StoryListActivity -->
     <string name="rename_dialog_title">Rename \"%s\"?</string>
