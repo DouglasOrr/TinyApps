@@ -15,7 +15,7 @@
     <!-- StoryPlayerActivity -->
     <color name="player_background">#060645</color>
     <color name="star_tint">#ffff00</color>
-    <color name="star_tint_playing">#00DF98</color>
+    <color name="star_tint_playing">#8AD1D8</color>
 
     <!-- StoryEditorActivity -->
     <color name="record_ready">@color/primary</color>
