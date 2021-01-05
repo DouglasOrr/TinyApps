@@ -7,12 +7,50 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.net.toFile
 import douglasorr.storytapstory.story.Story
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.activity_story_player.*
 
 private const val TAG = "StoryPlayerActivity"
 
 class StoryPlayerActivity : BaseActivity() {
-    private val player = Player()
+    class Controller(val story: Story, val tracks: List<String>) {
+        enum class Event {
+            WAITING,
+            PLAYING,
+            END,
+        }
+        private val player = Player()
+        private var currentTrack: Int = 0
+        private val subject: BehaviorSubject<Event> = BehaviorSubject.createDefault(Event.WAITING)
+        private val subscription = player.updates().subscribe {
+            if (it is Player.Event.End) {
+                currentTrack = (currentTrack + 1) % tracks.size
+                subject.onNext(if (currentTrack == 0) Event.END else Event.WAITING)
+            }
+        }
+
+        fun updates(): Observable<Event> = subject
+
+        fun play() {
+            if (!player.isPlaying() && tracks.isNotEmpty()) {
+                player.play(story.trackNamed(tracks[currentTrack]))
+                subject.onNext(Event.PLAYING)
+            }
+        }
+
+        fun stop() {
+            player.stop()
+            subject.onNext(Event.WAITING)
+        }
+
+        fun release() {
+            player.release()
+            subscription.dispose()
+        }
+    }
+
+    private lateinit var controller: Controller
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,21 +75,22 @@ class StoryPlayerActivity : BaseActivity() {
         // Load the story
         val story = Story(intent.data!!.toFile())
         addSubscription(story.updates().firstElement().subscribe { data ->
-            var trackIterator = data.tracks.iterator()
+            controller = Controller(story, data.tracks)
 
             // Responsive background
-            addSubscription(player.updates().subscribe {
-                if (it is Player.Event.Start) {
-                    spinning_star.setColorFilter(getColor(R.color.star_tint_playing))
-                    star_field.visibility = View.GONE
-                    (star_field.drawable as StarrySkyDrawable).refresh()
-                }
-                if (it is Player.Event.End) {
-                    spinning_star.setColorFilter(getColor(R.color.star_tint))
-                    if (!trackIterator.hasNext()) {
-                        // Reset to start
+            addSubscription(controller.updates().subscribe {
+                when (it) {
+                    Controller.Event.PLAYING -> {
+                        star_field.visibility = View.GONE
+                        spinning_star.setColorFilter(getColor(R.color.star_tint_playing))
+                    }
+                    Controller.Event.WAITING -> {
+                        star_field.visibility = View.GONE
+                        spinning_star.setColorFilter(getColor(R.color.star_tint))
+                    }
+                    Controller.Event.END -> {
                         star_field.visibility = View.VISIBLE
-                        trackIterator = data.tracks.iterator()
+                        (star_field.drawable as StarrySkyDrawable).refresh()
                     }
                 }
             })
@@ -59,9 +98,7 @@ class StoryPlayerActivity : BaseActivity() {
             // Click handling
             frame_player.setOnTouchListener { _, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
-                    if (!player.isPlaying() && trackIterator.hasNext()) {
-                        player.play(story.trackNamed(trackIterator.next()))
-                    }
+                    controller.play()
                     true
                 } else {
                     false
@@ -80,11 +117,12 @@ class StoryPlayerActivity : BaseActivity() {
         } else {
             starrySky.stop()
             spinningStar.stop()
+            controller.stop()
         }
     }
 
     override fun onDestroy() {
-        player.release()
+        controller.release()
         super.onDestroy()
     }
 }
