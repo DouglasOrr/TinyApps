@@ -24,22 +24,36 @@ private const val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 200
 private const val TAG = "StoryEditorActivity"
 
 class StoryEditorActivity : BaseActivity() {
-    private val recorder = Recorder()
     private val player = Player()
-    private var story: Story? = null
+    private lateinit var story: Story
+    private lateinit var recorder: Recorder
 
-    class Recorder {
+    class Recorder(val file: File) {
         private val recorder = MediaRecorder()
+        private var prepared = false
 
-        fun start(recording: File) {
-            recorder.apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
-                setOutputFile(recording.absolutePath)
-                prepare()
-                start()
+        init {
+            prepare()
+        }
+
+        fun prepare() {
+            if (!prepared) {
+                recorder.apply {
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
+                    setOutputFile(file.absolutePath)
+                    prepare()
+                }
+                prepared = true
             }
+        }
+
+        fun start() {
+            // Ideally, prepare() has already been called, as this reduces latency when starting
+            // recording, but in case it hasn't we prepare() here.
+            prepare()
+            recorder.start()
         }
 
         fun stop(): Boolean {
@@ -51,6 +65,7 @@ class StoryEditorActivity : BaseActivity() {
                 false
             } finally {
                 recorder.reset()
+                prepared = false
             }
         }
 
@@ -74,7 +89,7 @@ class StoryEditorActivity : BaseActivity() {
             target: RecyclerView.ViewHolder
         ): Boolean {
             val src = viewHolder as TrackAdapter.ViewHolder
-            src.name?.let { story!!.moveTrack(it, target.adapterPosition) }
+            src.name?.let { story.moveTrack(it, target.adapterPosition) }
             return true  // assume it will happen, asynchronously
         }
 
@@ -121,14 +136,14 @@ class StoryEditorActivity : BaseActivity() {
     //region Actions
 
     private fun play(name: String) {
-        player.play(story!!.trackNamed(name))
+        player.play(story.trackNamed(name))
     }
 
     private fun askUserToDeleteTrack(name: String) {
         AlertDialog.Builder(this).apply {
             setTitle(getString(R.string.delete_dialog_title, name))
             setPositiveButton(R.string.label_yes) { _, _ ->
-                story!!.deleteTrack(name)
+                story.deleteTrack(name)
             }
             setNegativeButton(R.string.label_no) { _, _ -> }
         }.create().show()
@@ -141,16 +156,19 @@ class StoryEditorActivity : BaseActivity() {
             setView(root)
             setPositiveButton(R.string.label_save) { _, _ ->
                 val name = root.findViewById<EditText>(R.id.save_dialog_name).text.toString()
-                story!!.saveWipRecording(name)
+                story.saveWipRecording(name)
             }
-            setNegativeButton(R.string.label_discard) { _, _ ->
-                story!!.deleteWipRecording()
+            setNegativeButton(R.string.label_discard) { _, _ ->  }
+            setOnDismissListener {
+                // This is called after the handler, so we delete the recording here
+                story.deleteWipRecording()
+                story.schedule { recorder.prepare() }
             }
         }.create().apply {
             show()
             getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
             findViewById<View>(R.id.save_dialog_play_button)!!.setOnClickListener {
-                player.play(story!!.wipRecording())
+                player.play(story.wipRecording())
             }
             findViewById<View>(R.id.save_dialog_stop_button)!!.setOnClickListener {
                 player.stop()
@@ -165,7 +183,7 @@ class StoryEditorActivity : BaseActivity() {
         AlertDialog.Builder(this).apply {
             setTitle(resources.getString(R.string.delete_dialog_title, title))
             setPositiveButton(R.string.label_delete) { _, _ ->
-                story!!.deleteStory()
+                story.deleteStory()
                 finish()
             }
             setNegativeButton(R.string.label_cancel) { _, _ -> }
@@ -179,8 +197,8 @@ class StoryEditorActivity : BaseActivity() {
             setView(root)
             setPositiveButton(R.string.label_rename) { _, _ ->
                 val newName = root.findViewById<EditText>(R.id.rename_dialog_name).text.toString().trim()
-                val newDirectory = File(story!!.directory.parentFile, newName)
-                story!!.renameStory(newDirectory)
+                val newDirectory = File(story.directory.parentFile, newName)
+                story.renameStory(newDirectory)
                 finish()
                 startActivity(Intent(this@StoryEditorActivity, StoryEditorActivity::class.java).apply {
                     data = newDirectory.toUri()
@@ -205,11 +223,12 @@ class StoryEditorActivity : BaseActivity() {
         setContentView(R.layout.activity_story_editor)
 
         story = Story(intent.data!!.toFile())
-        title = story!!.directory.name
+        recorder = Recorder(story.wipRecording())
+        title = story.directory.name
 
         findViewById<Button>(R.id.record_button).setOnTouchListener { _, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> recorder.start(story!!.wipRecording())
+                MotionEvent.ACTION_DOWN -> recorder.start()
                 MotionEvent.ACTION_UP -> {
                     if (recorder.stop()) {
                         askUserToSave()
@@ -225,7 +244,7 @@ class StoryEditorActivity : BaseActivity() {
             it.layoutManager = LinearLayoutManager(this)
             ItemTouchHelper(TrackDragCallback()).attachToRecyclerView(it)
         }
-        addSubscription(story!!.updates().subscribe {
+        addSubscription(story.updates().subscribe {
             adapter.submitList(it.tracks)
         })
     }

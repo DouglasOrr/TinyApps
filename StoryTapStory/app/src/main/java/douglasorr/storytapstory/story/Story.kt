@@ -234,6 +234,10 @@ class Story(val directory: File) {
         }
     }
 
+    fun schedule(runnable: () -> Unit) {
+        scheduler.scheduleDirect(runnable)
+    }
+
     /**
      * Note that this should be the last method called on this Story
      */
