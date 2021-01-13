@@ -16,11 +16,28 @@
         android:contentDescription="@string/content_star"
         android:tint="@color/star_tint"/>
 
-    <ImageView
-        android:id="@+id/star_field"
+    <RelativeLayout
+        android:id="@+id/end_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        android:contentDescription="@string/content_starry_sky"/>
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/star_field"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/content_starry_sky"/>
+
+        <TextView
+            android:id="@+id/end_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/star_tint"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:padding="20sp"
+            android:textSize="40sp"/>
+
+    </RelativeLayout>
 
 </FrameLayout>

@@ -18,7 +18,7 @@ fun currentTimeISO(): String {
     return format.format(Date())
 }
 
-fun logNonFatal(tag: String, message: String, e: Exception) {
+fun logNonFatal(tag: String, message: String, e: Throwable) {
     Log.e(tag, "$message, error: $e")
 }
 
