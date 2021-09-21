@@ -3,6 +3,7 @@ package douglasorr.storytapstory
 import android.annotation.SuppressLint
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.net.toFile
@@ -130,6 +131,12 @@ class StoryPlayerActivity : BaseActivity() {
                 }
             }
         })
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Initially, all controls just play()
+        controller.play()
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
